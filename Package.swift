@@ -14,8 +14,8 @@ let package = Package(
     dependencies: [
         // Dependencies declare other packages that this package depends on.
         // .package(url: /* package url */, from: "1.0.0"),
-        .package(url: "https://github.com/Quick/Quick.git", from: "1.0.0"),
-        .package(url: "https://github.com/Quick/Nimble.git", from: "7.0.0"),
+        .package(url: "https://github.com/Quick/Quick.git", from: "2.1.0"),
+        .package(url: "https://github.com/Quick/Nimble.git", .exact("8.0.2")),
         .package(
             url: "https://github.com/Flight-School/AnyCodable",
             from: "0.2.3"

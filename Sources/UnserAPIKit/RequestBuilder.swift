@@ -7,82 +7,7 @@
 
 import Foundation
 
-
-enum HttpMethod {
-    case get
-    case post
-    case put
-    case patch
-    case delete
-    
-    func value() -> String {
-        switch self {
-        case .get:
-            return "GET"
-        case .post:
-            return "POST"
-        case .put:
-            return "PUT"
-        case .patch:
-            return "PATCH"
-        case .delete:
-            return "DELETE"
-        }
-    }
-}
-
-enum MIMEType {
-  case application_json, multipart_form_data, text_plain, application_x_www_form_urlencoded, null
-  func value() -> String {
-    switch self {
-    case .application_json:
-      return "application/json"
-    case .multipart_form_data:
-      return "multipart/form-data"
-    case .text_plain:
-      return "text/plain"
-    case .application_x_www_form_urlencoded:
-      return "application/x-www-form-urlencoded"
-    case .null:
-      return ""
-    }
-  }
-}
-
-var CONTENT_TYPE_STRING = "Content-Type"
-var ACCEPT_TYPE_STRING = "Accept"
-
-typealias ContentType = MIMEType
-typealias AcceptType = MIMEType
-
-typealias Headers = [String: String]
-typealias QueryParameters = [String: String]
-
-struct Endpoint {
-    var path: String
-    var httpMethod: HttpMethod?
-    var queryParameters: QueryParameters?
-    var headers: Headers?
-    var contentType: ContentType
-    var acceptType: AcceptType
-    var resolveAgainstBaseURL: Bool
-    var data: Data?
-    var body: [String: Encodable]?
-    
-    init(path: String, httpMethod: HttpMethod? = nil, queryParameters: QueryParameters? = nil, headers: Headers? = nil, contentType: ContentType = .application_json, acceptType: AcceptType = .application_json, data: Data? = nil, body: [String: Encodable]? = nil, resolveAgainstBaseURL: Bool = true) {
-        self.path = path
-        self.httpMethod = httpMethod
-        self.queryParameters = queryParameters
-        self.headers = headers
-        self.contentType = contentType
-        self.acceptType = acceptType
-        self.data = data
-        self.body = body
-        self.resolveAgainstBaseURL = resolveAgainstBaseURL
-    }
-}
-
-enum RequestBuilderError: Error {
+enum UnserAPIKitError: Error {
     case invalidURL(path: String, baseURL: String?)
 }
 
@@ -109,13 +34,13 @@ final class RequestBuilder {
                 
         if let baseURLString = self.baseURLString {
             guard let u = URL(string: baseURLString) else {
-                throw RequestBuilderError.invalidURL(path: self.endpoint.path, baseURL: baseURLString)
+                throw UnserAPIKitError.invalidURL(path: self.endpoint.path, baseURL: baseURLString)
             }
             relativeURL = u
         }
                 
         guard let enpointURL = URL(string: self.endpoint.path, relativeTo: relativeURL), let components = URLComponents(url: enpointURL, resolvingAgainstBaseURL: self.endpoint.resolveAgainstBaseURL) else {
-            throw RequestBuilderError.invalidURL(path: self.endpoint.path, baseURL: self.baseURLString)
+            throw UnserAPIKitError.invalidURL(path: self.endpoint.path, baseURL: self.baseURLString)
         }
         
         self.urlComponent = components

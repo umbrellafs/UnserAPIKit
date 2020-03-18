@@ -34,9 +34,9 @@ final class RequestBuilderTests: QuickSpec {
     
         it("should throw error with endpoint having invalid path") {
             expect { try self.setupThrowingSUT(endpoint: Endpoint.withPath("\\blabla"), baseURLString: "https://www.google.com")} .to(throwError { (error: Error) in
-            expect(error).to(matchError(RequestBuilderError.invalidURL(path: "", baseURL: "")))
+            expect(error).to(matchError(UnserAPIKitError.invalidURL(path: "", baseURL: "")))
                 
-                if case let RequestBuilderError.invalidURL(path: path, baseURL: baseURL) = error {
+                if case let UnserAPIKitError.invalidURL(path: path, baseURL: baseURL) = error {
                     expect(path) == "\\blabla"
                     expect(baseURL) == "https://www.google.com"
                 } else {
@@ -47,9 +47,9 @@ final class RequestBuilderTests: QuickSpec {
         
         it("should throw error if baseurl is invalid") {
             expect { try self.setupThrowingSUT(endpoint: Endpoint.withPath("iamvalid"), baseURLString: "iamnot& valid")} .to(throwError { (error: Error) in
-            expect(error).to(matchError(RequestBuilderError.invalidURL(path: "", baseURL: "")))
+            expect(error).to(matchError(UnserAPIKitError.invalidURL(path: "", baseURL: "")))
                 
-                if case let RequestBuilderError.invalidURL(path: path, baseURL: baseURL) = error {
+                if case let UnserAPIKitError.invalidURL(path: path, baseURL: baseURL) = error {
                     expect(path) == "iamvalid"
                     expect(baseURL) == "iamnot& valid"
                 } else {

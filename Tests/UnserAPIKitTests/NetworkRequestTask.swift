@@ -38,8 +38,6 @@ final class NetworkRequestTests: QuickSpec {
             self.sut = NetworkRequest()
             self.mockTask = URLSessionMockTask()
             URLSessionMockTask.resumeCallsCount = 0
-            
-        
         }
         
         afterEach {

@@ -22,7 +22,7 @@ final class ClientTests: QuickSpec {
     override func spec() {
         
         beforeEach {
-        URLProtocol.registerClass(URLProtocolMock.self)
+            URLProtocol.registerClass(URLProtocolMock.self)
             let config = URLSessionConfiguration.ephemeral
             config.protocolClasses = [URLProtocolMock.self]
             self.urlSession = URLSession(configuration: config)
@@ -32,52 +32,102 @@ final class ClientTests: QuickSpec {
         afterEach {
             self.sut = nil
             self.urlSession = nil
-                    
+            
             URLProtocolMock.requests = []
+            
+        }
+        
+        it("should fail if requestbuilder throws") {
+            
+            expect(self.runSUTExpectingFailure(endpoint: self.anyEndpoint(path: "\\b^ ")) {}).to(matchError(UnserAPIKitError.invalidURL(path: "", baseURL: "")))
+        }
+        
+        it("should fail if response is not httpurlresponse") {
+            expect(self.runSUTExpectingFailure() {
+                URLProtocolMock.finishWith(response: self.anyURLResponse(), data: nil)
+                }).notTo(beNil())
+            
+            expect(self.runSUTExpectingFailure() {
+                URLProtocolMock.finishWith(response: self.anyURLResponse(), data: self.anyData())
+                }).notTo(beNil())
+        }
+        
+        it("should fail if session returned error") {
+            
+            expect(self.runSUTExpectingFailure() {
+                    URLProtocolMock.failWith(error: self.anyError())
+                }).to(matchError(self.anyError()))
+        }
+        
+        it("should succeed if session returned no error and a httpurlresponse") {
+            
+            expect(self.runSUTExpectingSuccess() {
+                URLProtocolMock.finishWith(response: self.anyHttpResponse(), data: self.anyData())
+            }?.0) == self.anyData()
+            
+            expect(self.runSUTExpectingSuccess(){
+                URLProtocolMock.finishWith(response: self.anyHttpResponse(), data: nil)
+                }).notTo(beNil())
+        }
+    }
+    
+    private func runSUTExpectingSuccess(endpoint: Endpoint? = nil, action: () -> Void) -> (Data?, HTTPURLResponse)? {
+        
+        let result = self.runSUT(endpoint: endpoint ?? self.anyEndpoint(), action: action)
+        switch result {
+        case .success(let response):
+            return response
+        default:
+            fail("should not fail")
+            return nil
+        }
+    }
+    
+    private func runSUTExpectingFailure(endpoint: Endpoint? = nil, action: () -> Void) -> Error? {
+        
+        let result = self.runSUT(endpoint: endpoint ?? self.anyEndpoint(), action: action)
+        switch result {
+        case .failure(let error):
+            return error
+        default:
+            fail("should not succeed")
+            return nil
+        }
+    }
+    
+    private func runSUT(endpoint: Endpoint, action: () -> Void) -> ClientProtocol.Result {
+        
+        let ex = QuickSpec.current.expectation(description: "ex")
 
-        }
+        var receivedResult: ClientProtocol.Result!
+        self.sut.request(endpoint: endpoint, networkRequest: NetworkRequest(), completion: {
+            receivedResult = $0
+            ex.fulfill()
+        })
         
-        it("should call completion handler with error if requestbuilder throws") {
-            
-            self.sut.request(endpoint: Endpoint(path: "\\b "), networkRequest: NetworkRequest(), completionHandler: { _,_,error in
-                expect(error).to(matchError(UnserAPIKitError.invalidURL(path: "", baseURL: "")))
-            })
-                
-        }
-        
-        it("should run datatask given an endpoint and a network request") {
-            
-           let httpResponse = HTTPURLResponse(url: URL.init(string: "https://google.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)!
-            
-            let data = "test".data(using: .utf8)!
-            URLProtocolMock.finishWith(response: httpResponse, data: data)
-            let ex = QuickSpec.current.expectation(description: "ex")
-            try! self.sut.request(endpoint: Endpoint(path: "test"), networkRequest: NetworkRequest()) { data, response, error in
-                ex.fulfill()
-                expect(data) == data
-                expect((response as? HTTPURLResponse)?.statusCode) == httpResponse.statusCode
-                expect((response as? HTTPURLResponse)?.url) == httpResponse.url
-                expect(error).to(beNil())
-            }
-            
-            QuickSpec.current.waitForExpectations(timeout: 3, handler: nil)
-        }
-        
-        it("should run datatask given an endpoint and a network request (failure)") {
-            
-            let error = NSError(domain: "whatever", code: 10, userInfo: nil)
-            
-            URLProtocolMock.failWith(error: error)
-            let ex = QuickSpec.current.expectation(description: "ex")
-            try! self.sut.request(endpoint: Endpoint(path: "test"), networkRequest: NetworkRequest()) { data, response, error in
-                ex.fulfill()
-                expect(data).to(beNil())
-                expect(response).to(beNil())
-                expect(error).to(matchError(error!))
-            }
-            
-            QuickSpec.current.waitForExpectations(timeout: 3, handler: nil)
-        }
-        
+        action()
+        QuickSpec.current.wait(for: [ex], timeout: 1.0)
+        return receivedResult
+
+    }
+    
+    private func anyEndpoint(path: String = "tests") -> Endpoint {
+        return Endpoint(path: path)
+    }
+    
+    private func anyHttpResponse() -> HTTPURLResponse {
+        return HTTPURLResponse(url: URL.init(string: "https://google.com")!, statusCode: 200, httpVersion: nil, headerFields: nil)!
+    }
+    
+    private func anyURLResponse() -> URLResponse {
+        return URLResponse(url: URL.init(string: "https://google.com")!, mimeType: nil, expectedContentLength: 500, textEncodingName: nil)
+    }
+    
+    private func anyData() -> Data {
+        return "testData".data(using: .utf8)!
+    }
+    
+    private func anyError() -> Error {
+        return NSError(domain: "whatever", code: 10, userInfo: nil)
     }
 }

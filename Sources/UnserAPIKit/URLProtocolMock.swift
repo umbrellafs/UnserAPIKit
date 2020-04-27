@@ -6,10 +6,12 @@ class URLProtocolMock: URLProtocol {
 
     static var startLoadingResponse: ((_ protocol: URLProtocolMock) -> Void)? = nil
     
-    static func finishWith(response: URLResponse, data: Data) {
+    static func finishWith(response: URLResponse, data: Data?) {
         URLProtocolMock.startLoadingResponse = { mockProtocol in
             mockProtocol.client?.urlProtocol(mockProtocol, didReceive: response, cacheStoragePolicy: .notAllowed)
-            mockProtocol.client?.urlProtocol(mockProtocol, didLoad: data)
+            if let data = data {
+                mockProtocol.client?.urlProtocol(mockProtocol, didLoad: data)
+            }
             mockProtocol.client?.urlProtocolDidFinishLoading(mockProtocol)
         }
     }

@@ -15,7 +15,7 @@ import Nimble
 
 final class ClientTests: QuickSpec {
     
-    var sut: Client!
+    var sut: URLSessionHttpClient!
     var urlSession: URLSession!
     
     
@@ -26,7 +26,7 @@ final class ClientTests: QuickSpec {
             let config = URLSessionConfiguration.ephemeral
             config.protocolClasses = [URLProtocolMock.self]
             self.urlSession = URLSession(configuration: config)
-            self.sut = Client(baseURL: "https://www.google.com", urlSession: self.urlSession)
+            self.sut = URLSessionHttpClient(baseURL: "https://www.google.com", urlSession: self.urlSession)
         }
         
         afterEach {
@@ -95,11 +95,11 @@ final class ClientTests: QuickSpec {
         }
     }
     
-    private func runSUT(endpoint: Endpoint, action: () -> Void) -> ClientProtocol.Result {
+    private func runSUT(endpoint: Endpoint, action: () -> Void) -> HttpClient.Result {
         
         let ex = QuickSpec.current.expectation(description: "ex")
 
-        var receivedResult: ClientProtocol.Result!
+        var receivedResult: HttpClient.Result!
         self.sut.request(endpoint: endpoint, networkRequest: NetworkRequest(), completion: {
             receivedResult = $0
             ex.fulfill()

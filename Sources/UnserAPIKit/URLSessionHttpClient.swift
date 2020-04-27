@@ -7,12 +7,12 @@
 
 import Foundation
 
-public protocol ClientProtocol {
+public protocol HttpClient {
     typealias Result = Swift.Result<(Data?, HTTPURLResponse), Error>
     func request(endpoint: Endpoint, networkRequest: NetworkRequest, completion: @escaping (Result) -> Void)
 }
 
-final public class Client: ClientProtocol {
+final public class URLSessionHttpClient: HttpClient {
     
     private var baseURL: String
     private var urlSession: URLSession
@@ -24,13 +24,13 @@ final public class Client: ClientProtocol {
     
     private struct UnexpectedValuesRepresentation: Error {}
     
-    public func request(endpoint: Endpoint, networkRequest: NetworkRequest, completion: @escaping (ClientProtocol.Result) -> Void) {
+    public func request(endpoint: Endpoint, networkRequest: NetworkRequest, completion: @escaping (HttpClient.Result) -> Void) {
         
         do {
             let requestBuilder = try RequestBuilder(endpoint: endpoint, baseURLString: self.baseURL)
             
             let dataTask = self.urlSession.dataTask(with: requestBuilder.request) { data, response, error in
-                completion(ClientProtocol.Result {
+                completion(HttpClient.Result {
                     if let error = error {
                         throw error
                     } else if let httpResponse = response as? HTTPURLResponse {

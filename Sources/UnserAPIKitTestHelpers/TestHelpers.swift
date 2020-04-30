@@ -13,7 +13,7 @@ public func makeError() -> Error { return NSError(domain: "1", code: 1, userInfo
 
 public class HttpClientTestDouble: HttpClient {
   private var completion: ((HttpClient.Result) -> Void)? = nil
-  var endpoint: Endpoint? = nil
+  public var endpoint: Endpoint? = nil
   public var networkRequest: NetworkRequest? = nil
   public init() {}
   public func request(

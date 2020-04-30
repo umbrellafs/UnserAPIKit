@@ -11,10 +11,11 @@ public func makeHttpURLResponse(statusCode: Int = 200) -> HTTPURLResponse {
 
 public func makeError() -> Error { return NSError(domain: "1", code: 1, userInfo: nil) }
 
-public class APIClientMock: HttpClient {
+public class HttpClientTestDouble: HttpClient {
   private var completion: ((HttpClient.Result) -> Void)? = nil
   var endpoint: Endpoint? = nil
   public var networkRequest: NetworkRequest? = nil
+  public init() {}
   public func request(
     endpoint: Endpoint, networkRequest: NetworkRequest,
     completion: @escaping (HttpClient.Result) -> Void

@@ -9,7 +9,7 @@ let package = Package(
         // Products define the executables and libraries produced by a package, and make them visible to other packages.
         .library(
             name: "UnserAPIKit",
-            targets: ["UnserAPIKit"]),
+            targets: ["UnserAPIKit", "UnserAPIKitTestHelpers"]),
     ],
     dependencies: [
         // Dependencies declare other packages that this package depends on.
@@ -30,5 +30,8 @@ let package = Package(
         .testTarget(
             name: "UnserAPIKitTests",
             dependencies: ["UnserAPIKit", "Quick", "Nimble", "AnyCodable"]),
+        .target(
+            name: "UnserAPIKitTestHelpers",
+            dependencies: ["UnserAPIKit", "Quick", "Nimble"]),
     ]
 )
